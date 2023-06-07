@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import 'package:expense_tracker_app/models/expense.dart';
 
@@ -52,18 +55,11 @@ class _NewExpanseState extends State<NewExpense> {
     });
   }
 
-  void _submitExpenseData() {
-    final enteredAmount = double.tryParse(_amountController.text);
-    final amountIsInvalid = enteredAmount == null || enteredAmount <= 0;
-
-    final formIsInvalid = _titleController.text.trim().isEmpty ||
-        amountIsInvalid ||
-        _selectedDate == null;
-
-    if (formIsInvalid) {
-      showDialog(
+  void _showDialog() {
+    if (Platform.isIOS) {
+      showCupertinoDialog(
         context: context,
-        builder: (ctx) => AlertDialog(
+        builder: (ctx) => CupertinoAlertDialog(
           title: const Text('Invalid Input'),
           content: const Text(
             'Please make sure a valid title, amount, date and category was entered',
@@ -78,6 +74,39 @@ class _NewExpanseState extends State<NewExpense> {
           ],
         ),
       );
+
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Invalid Input'),
+        content: const Text(
+          'Please make sure a valid title, amount, date and category was entered',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+            },
+            child: const Text('Okay'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _submitExpenseData() {
+    final enteredAmount = double.tryParse(_amountController.text);
+    final amountIsInvalid = enteredAmount == null || enteredAmount <= 0;
+
+    final formIsInvalid = _titleController.text.trim().isEmpty ||
+        amountIsInvalid ||
+        _selectedDate == null;
+
+    if (formIsInvalid) {
+      _showDialog();
 
       return;
     }
@@ -101,7 +130,7 @@ class _NewExpanseState extends State<NewExpense> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
+      padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           TextField(
@@ -115,7 +144,6 @@ class _NewExpanseState extends State<NewExpense> {
             children: [
               Expanded(
                 child: TextField(
-                  maxLength: 50,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                     label: Text('Amount'),
